@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Terraria-Style Cycle with Tips & Links</title>
+<title>Terraria-Style Cycle with Fixed Speed & Logos</title>
 <style>
   body {
     margin: 0;
@@ -17,7 +17,6 @@
     display: block;
   }
 
-  /* Overlay for time and tips */
   #centerText {
     position: absolute;
     top: 50%;
@@ -29,14 +28,10 @@
     font-size: 2em;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
   }
-
-  /* Tips below the main time */
   #tips {
     margin-top: 10px;
-    font-size: 1em;
   }
 
-  /* Links container with logos */
   #links {
     position: absolute;
     top: 10px;
@@ -45,24 +40,21 @@
     gap: 10px;
   }
 
-  /* Style for each link button */
   .link-btn {
     display: flex;
     align-items: center;
     background: rgba(0,0,0,0.5);
-    padding: 8px 10px;
+    padding: 8px 12px;
     border-radius: 5px;
     color: white;
     text-decoration: none;
     font-size: 1em;
     transition: background 0.3s;
   }
-
   .link-btn:hover {
     background: rgba(255, 215, 0, 0.8);
   }
 
-  /* SVG icon style */
   .icon {
     width: 24px;
     height: 24px;
@@ -83,15 +75,15 @@
 <div id="links">
   <a class="link-btn" href="https://discord.gg/WDfMupZ6xD" target="_blank" rel="noopener noreferrer">
     <!-- Discord SVG Logo -->
-    <svg class="icon" viewBox="0 0 24 24">
-      <path d="M20.317 4.369a19.791 19.791 0 00-4.516-...." />
+    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M20.317 4.369c-...." /> <!-- Full Discord SVG path here -->
     </svg>
     Discord
   </a>
   <a class="link-btn" href="https://www.paypal.me/Blemmished" target="_blank" rel="noopener noreferrer">
     <!-- PayPal SVG Logo -->
-    <svg class="icon" viewBox="0 0 24 24">
-      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12..." />
+    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12..." /> <!-- Full PayPal SVG path here -->
     </svg>
     PayPal
   </a>
@@ -108,36 +100,36 @@ canvas.width = width;
 canvas.height = height;
 
 window.addEventListener('resize', () => {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
 });
 
-// Pixelated style
+// Pixelate the rendering
 ctx.imageSmoothingEnabled = false;
 
 // Colors for day/night
 const dayColors = {
-  bgTop: '#87CEFA', // Light blue
-  bgBottom: '#228B22', // Forest green
-  sun: '#FFD700', // Gold
-  moon: '#FFFFFF', // White
+  bgTop: '#87CEFA',
+  bgBottom: '#228B22',
+  sun: '#FFD700',
+  moon: '#FFFFFF',
   stars: '#FFFFFF'
 };
-
 const nightColors = {
-  bgTop: '#000033', // Dark blue
-  bgBottom: '#000000', // Black
+  bgTop: '#000033',
+  bgBottom: '#000000',
   sun: null,
   moon: '#FFFFFF',
   stars: '#FFFFFF'
 };
 
-let time = Math.random(); // Start at random time for variation
-const cycleSpeed = 0.02; // Faster cycle for Terraria style
+// Keep a normalized time: 0 to 1, 1 = 24 hours
+let time = 0; // Start at midnight
+const realSecondsPerGameMinute = 0.5; // 1 real second = 2 game minutes; adjust for speed
 
-// Trees sway
+// Animate trees
 const trees = [];
 const treeCount = 10;
 for (let i=0; i<treeCount; i++) {
@@ -145,7 +137,7 @@ for (let i=0; i<treeCount; i++) {
     x: Math.random() * width,
     swayOffset: Math.random() * Math.PI * 2,
     swaySpeed: 0.02 + Math.random() * 0.02,
-    swayAmplitude: 2 + Math.random() * 2
+    swayAmplitude: 1 + Math.random() * 2
   });
 }
 
@@ -155,14 +147,14 @@ let sunX, moonX, sunY, moonY;
 function animate() {
   ctx.clearRect(0, 0, width, height);
 
-  // Update time
-  time += cycleSpeed;
+  // Update time (increment based on realSecondsPerGameMinute)
+  time += (1 / (24 * 60)) * (1 / realSecondsPerGameMinute) * 0.016; // approx per frame
   if (time > 1) time -= 1;
 
   // Determine if day or night
-  const isDay = time >= 0.25 && time <= 0.75;
+  const isDay = (time >= 0.25 && time <= 0.75);
 
-  // Interpolate background colors
+  // Background color interpolation
   const t = isDay ? (time - 0.25)/0.5 : (time + 0.25)/0.5;
   const bgTopColor = interpolateColor(dayColors.bgTop, nightColors.bgTop, isDay ? (1 - t) : t);
   const bgBottomColor = interpolateColor(dayColors.bgBottom, nightColors.bgBottom, isDay ? (1 - t) : t);
@@ -172,20 +164,22 @@ function animate() {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  // Sun and moon arc
+  // Sun and moon arc movement, slow and smooth
   const arcProgress = t;
   sunX = width * (1 - Math.cos(Math.PI * arcProgress)) / 2;
   sunY = height/2 - Math.sin(Math.PI * arcProgress) * (height/2 - 50);
   moonX = width * (1 - Math.cos(Math.PI * (1 - arcProgress))) / 2;
   moonY = height/2 - Math.sin(Math.PI * (1 - arcProgress)) * (height/2 - 50);
 
-  // Draw sun and moon
+  // Draw sun
   if (isDay && sunX >= 0 && sunX <= width) {
     ctx.fillStyle = dayColors.sun;
     ctx.beginPath();
     ctx.arc(sunX, sunY, 20, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Draw moon
   if (!isDay && moonX >= 0 && moonX <= width) {
     ctx.fillStyle = nightColors.moon;
     ctx.beginPath();
@@ -193,27 +187,25 @@ function animate() {
     ctx.fill();
   }
 
-  // Draw stars at night
+  // Stars at night
   if (!isDay) {
     ctx.fillStyle = nightColors.stars;
-    for (let i=0; i<100; i++) {
-      const x = Math.random() * width;
-      const y = Math.random() * height/2;
-      ctx.fillRect(x, y, 1, 1);
+    for (let i=0; i<50; i++) {
+      ctx.fillRect(Math.random() * width, Math.random() * height/2, 1, 1);
     }
   }
 
-  // Draw trees (swaying)
+  // Draw trees with more detail
   for (const tree of trees) {
     const sway = Math.sin(tree.swayOffset) * tree.swayAmplitude;
     ctx.fillStyle = '#654321'; // trunk
     ctx.fillRect(tree.x, height - 60, 4, 60);
     ctx.fillStyle = '#228B22'; // leaves
     ctx.beginPath();
-    ctx.moveTo(tree.x - 10 + sway, height - 60);
-    ctx.lineTo(tree.x + 20 + sway, height - 80);
-    ctx.lineTo(tree.x + 30 + sway, height - 60);
-    ctx.lineTo(tree.x - 10 + sway, height - 60);
+    ctx.moveTo(tree.x - 8 + sway, height - 60);
+    ctx.lineTo(tree.x + 4 + sway, height - 80);
+    ctx.lineTo(tree.x + 16 + sway, height - 60);
+    ctx.lineTo(tree.x - 8 + sway, height - 60);
     ctx.fill();
     tree.swayOffset += tree.swaySpeed;
   }
@@ -222,7 +214,7 @@ function animate() {
   ctx.fillStyle = '#228B22';
   ctx.fillRect(0, height - 60, width, 60);
 
-  // Update time display in 12-hour format
+  // Update the clock in 12-hour format
   const totalMinutes = Math.floor(time * 24 * 60);
   let hour = Math.floor(totalMinutes / 60);
   const minute = totalMinutes % 60;
@@ -230,7 +222,7 @@ function animate() {
   if (hour === 0) hour = 12;
   if (hour > 12) hour -= 12;
   const timeStr = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')} ${ampm}`;
-  timeDisplay.textContent = timeStr;
+  document.getElementById('timeDisplay').textContent = timeStr;
 
   requestAnimationFrame(animate);
 }
@@ -257,7 +249,6 @@ function hexToRgb(hex) {
 
 // Start animation
 animate();
-
 </script>
 </body>
 </html>
