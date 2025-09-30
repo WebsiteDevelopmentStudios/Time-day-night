@@ -127,7 +127,7 @@ const nightColors = {
 
 // Keep a normalized time: 0 to 1, 1 = 24 hours
 let time = 0; // Start at midnight
-const realSecondsPerGameMinute = 0.5; // 1 real second = 2 game minutes; adjust for speed
+const realSecondsPerGameMinute = 0.05; // 1 real second = 2 game minutes; adjust for speed
 
 // Animate trees
 const trees = [];
@@ -209,11 +209,6 @@ function animate() {
     ctx.fill();
     tree.swayOffset += tree.swaySpeed;
   }
-
-  // Draw ground
-  ctx.fillStyle = '#228B22';
-  ctx.fillRect(0, height - 60, width, 60);
-
   // Update the clock in 12-hour format
   const totalMinutes = Math.floor(time * 24 * 60);
   let hour = Math.floor(totalMinutes / 60);
